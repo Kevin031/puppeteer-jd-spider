@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title 京东抓取工具
+    link(href='https://cdn.bootcss.com/twitter-bootstrap/4.4.1/css/bootstrap.min.css', rel='stylesheet')
+    script(src='https://cdn.bootcss.com/vue/2.6.11/vue.min.js')
+  body
+    //- div hello world #{locals.someKey}
+    div#app.container.pt-5.pb-5
+      form.form(@submit.prevent='')
+        div.d-flex
+          input.flex-fill.mr-3.form-control(placeholder='输入链接', v-model='target_link', @enter='spiderStart')
+          div
+            button.d-block.btn.btn-primary(
+              style='width: 200px;'
+              @click.stop='spiderStart'
+              :disabled='loading') {{ loading ? '正在抓取' : '开始任务' }}
+script.
+  const get = (url) => fetch(url).then(res => res.json())
+
+  const vue = new Vue({
+    el: '#app',
+    data () {
+      return {
+        target_link: '',
+        loading: false
+      }
+    },
+    methods: {
+      spiderStart () {
+        if (this.loading) return false
+        this.loading = true
+        get(`/start?link=${this.target_link}`).then(res => {
+          if (res.ok) {
+            this.loading = true
+          }
+        })
+        this.spiderSocket(1)
+      },
+      spiderSocket (id) {
+        console.log('do spider socket')
+        const CreateWebSocket = (function () {
+          return function (urlValue) {
+            if (window.WebSocket) return new WebSocket(urlValue)
+            if (window.MozWebSocket) return new MozWebSocket(urlValue)
+            return false
+          }
+        })()
+        const webSocket = CreateWebSocket('ws://127.0.0.1:4000/websocket/' + id)
+        console.log(webSocket)
+        webSocket.onopen = function (evt) {
+          webSocket.send('前端向后端发送第一条数据')
+        }
+        webSocket.onmessage = function (evt) {
+          let res = JSON.parse(evt.data)
+          console.log(res)
+          if (res.n > 0.99) {
+            webSocket.close()
+          }
+        }
+        webSocket.onclose = function (evt) {
+          console.log('Connection closed.')
+        }
+      }
+    }
+  })

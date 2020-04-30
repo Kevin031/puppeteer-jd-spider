@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "start": "nodemon app.js -i ./output/"
+  },
+  "dependencies": {
+    "@koa/router": "^8.0.8",
+    "koa": "^2.11.0",
+    "koa-pug": "^4.0.3",
+    "koa-route": "^3.2.0",
+    "koa-websocket": "^6.0.0",
+    "puppeteer": "^2.1.1"
+  }
+}
